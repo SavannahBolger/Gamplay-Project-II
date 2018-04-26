@@ -12,7 +12,8 @@ GLuint	vsid,		// Vertex Shader ID
 		colorID,	// Color ID
 		textureID,	// Texture ID
 		uvID,		// UV ID
-		mvpID;		// Model View Projection ID
+		mvpID,		// Model View Projection ID
+		mvp2ID;		// Model View Projection ID
 
 //const string filename = ".//Assets//Textures//coordinates.tga";
 //const string filename = ".//Assets//Textures//cube.tga";
@@ -277,7 +278,9 @@ void Game::initialize()
 	uvID = glGetAttribLocation(progID, "sv_uv");
 	textureID = glGetUniformLocation(progID, "f_texture");
 	mvpID = glGetUniformLocation(progID, "sv_mvp");
+	mvp2ID = glGetUniformLocation(progID, "sv_mvp");
 
+	
 	// Projection Matrix 
 	projection = perspective(
 		45.0f,					// Field of View 45 degrees
@@ -291,12 +294,18 @@ void Game::initialize()
 		vec3(0.0f, 4.0f, 10.0f),	// Camera (x,y,z), in World Space
 		vec3(0.0f, 0.0f, 0.0f),		// Camera looking at origin
 		vec3(0.0f, 1.0f, 0.0f)		// 0.0f, 1.0f, 0.0f Look Down and 0.0f, -1.0f, 0.0f Look Up
-		);
+	);
 
 	// Model matrix
 	model = mat4(
 		1.0f					// Identity Matrix
 		);
+
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	
 
 	// Enable Depth Test
 	glEnable(GL_DEPTH_TEST);
@@ -311,6 +320,31 @@ void Game::update()
 #endif
 	// Update Model View Projection
 	mvp = projection * view * model;
+
+	int x = Mouse::getPosition(window).x;
+	int y = Mouse::getPosition(window).y;
+
+	if (x<350)
+	{
+		// Set Model Rotation
+		model = rotate(model, 0.05f, glm::vec3(0, 1, 0)); // Rotate
+	}
+	else if (x>450)
+	{
+		// Set Model Rotation
+		model = rotate(model, -0.05f, glm::vec3(0, 1, 0)); // Rotate
+	}
+
+	if (y<250)
+	{
+		// Set Model Rotation
+		model = rotate(model, -0.05f, glm::vec3(1, 0, 0)); // Rotate
+	}
+	else if (y>350)
+	{
+		// Set Model Rotation
+		model = rotate(model, 0.05f, glm::vec3(1, 0, 0)); // Rotate
+	}
 }
 
 void Game::render()
@@ -322,12 +356,15 @@ void Game::render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//VBO Data....vertices, colors and UV's appended
+	m_player.display();
+	m_npc.display();
+
+    //VBO Data....vertices, colors and UV's appended
 	glBufferSubData(GL_ARRAY_BUFFER, 0 * VERTICES * sizeof(GLfloat), 3 * VERTICES * sizeof(GLfloat), vertices);
 	glBufferSubData(GL_ARRAY_BUFFER, 3 * VERTICES * sizeof(GLfloat), 4 * COLORS * sizeof(GLfloat), colors);
 	glBufferSubData(GL_ARRAY_BUFFER, ((3 * VERTICES) + (4 * COLORS)) * sizeof(GLfloat), 2 * UVS * sizeof(GLfloat), uvs);
 
-	// Send transformation to shader mvp uniform
+    // Send transformation to shader mvp uniform
 	glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
 	//Set Active Texture .... 32
@@ -348,7 +385,6 @@ void Game::render()
 	//Draw Element Arrays
 	glDrawElements(GL_TRIANGLES, 3 * INDICES, GL_UNSIGNED_INT, NULL);
 	window.display();
-
 	//Disable Arrays
 	glDisableVertexAttribArray(positionID);
 	glDisableVertexAttribArray(colorID);

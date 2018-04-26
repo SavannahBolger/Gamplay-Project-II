@@ -11,9 +11,10 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
-
+#include <SFML\Graphics.hpp>
 #include <Debug.h>
-
+#include "Player.h"
+#include "NPC.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -29,12 +30,15 @@ public:
 	~Game();
 	void run();
 private:
+	GLuint index = 1;
 	Window window;
 	bool isRunning = false;
 	void initialize();
 	void update();
 	void render();
 	void unload();
+	Player m_player;
+	NPC m_npc;
 };
 
 #endif
